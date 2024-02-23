@@ -14,7 +14,7 @@ from crowdsim_agents.forces.forces import Forcemodels
 
 # Main function.
 def main():
-    rospy.init_node("pedsim_agents")
+    rospy.init_node("crowdsim_agents")
 
     #TODO automate this
     Topics.INPUT = os.path.join(rospy.get_name(), Topics.INPUT)
@@ -76,7 +76,6 @@ def main():
         )
 
         running = True
-        rospy.logwarn(f"RUNNING {sub.resolved_name}")
         
         rospy.wait_for_message("reset_start", std_msgs.msg.Empty)
 

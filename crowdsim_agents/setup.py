@@ -10,7 +10,7 @@ def crowdsim_forces(prefix):
 
     packages = [CROWDSIM_FORCES]
     
-    # for pkg in next(os.walk(os.path.join("src","pedsim_agents","pedsim_forces","forcemodels")))[1]:
+    # for pkg in next(os.walk(os.path.join("src","crowdsim_agents","forces","forcemodels")))[1]:
     #     packages.append(f"{PEDSIM_FORCES}.forcemodels.{pkg}") 
 
     return packages

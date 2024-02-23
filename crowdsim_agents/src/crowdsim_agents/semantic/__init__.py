@@ -6,7 +6,8 @@ import numpy as np
 import genpy
 import rospy
 
-import pedsim_msgs.msg
+import pedsim_msgs.msg as pedsim_msgs
+import crowdsim_msgs.msg as crowdsim_msgs
 
 from crowdsim_agents.config import Topics
 from crowdsim_agents.utils import InData, WorkData, SemanticMsg, SemanticData, SemanticAttribute
@@ -30,7 +31,7 @@ class SemanticProcessor:
         for attribute in SemanticAttribute:
             semantic_data[attribute] = []
 
-        def get_attributes(agent_state: pedsim_msgs.msg.AgentState, force: np.ndarray) -> List[Tuple[SemanticAttribute, float]]:
+        def get_attributes(agent_state: pedsim_msgs.AgentState, force: np.ndarray) -> List[Tuple[SemanticAttribute, float]]:
             attributes: List[Tuple[SemanticAttribute, float]] = []
 
             attributes.append((SemanticAttribute.IS_PEDESTRIAN, 1))
@@ -59,7 +60,7 @@ class SemanticProcessor:
             msg = SemanticMsg()
 
             msg.header.stamp = stamp
-            msg.points = [pedsim_msgs.msg.SemanticDatum(location=location, evidence=evidence) for location, evidence in evidences]
+            msg.points = [crowdsim_msgs.SemanticDatum(location=location, evidence=evidence) for location, evidence in evidences]
             msg.type = attribute.value
 
             self.publishers[attribute].publish(msg)

@@ -14,10 +14,11 @@ find_package(catkin REQUIRED COMPONENTS message_generation ${MESSAGE_DEPENDENCIE
 
 include_directories(${catkin_INCLUDE_DIRS})
 
-## Generate messages in the 'msg' folder
-# add_message_files( DIRECTORY msg
-#   FILES
-# )
+# Generate messages in the 'msg' folder
+add_message_files( DIRECTORY msg FILES
+  SemanticData.msg
+  SemanticDatum.msg
+)
 
 # add_service_files( DIRECTORY srv
 #   FILES

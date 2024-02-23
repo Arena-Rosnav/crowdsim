@@ -1,17 +1,17 @@
 import dataclasses
 import enum
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
 import typing
 
 import numpy as np
 
 import pedsim_msgs.msg as pedsim_msgs
+import crowdsim_msgs.msg as crowdsim_msgs
 import std_msgs.msg as std_msgs
 import geometry_msgs.msg as geometry_msgs
 
-T = TypeVar("T")
+T = typing.TypeVar("T")
 
-def NList(l: Optional[List[T]]) -> List[T]:
+def NList(l: typing.Optional[typing.List[T]]) -> typing.List[T]:
     return [] if l is None else l
 
 def msg_to_vec(msg: typing.Union[geometry_msgs.Point, geometry_msgs.Vector3]) -> np.ndarray:
@@ -77,12 +77,12 @@ InMsg = pedsim_msgs.PedsimAgentsDataframe
 @dataclasses.dataclass
 class InData:
     header: std_msgs.Header
-    agents: List[pedsim_msgs.AgentState]
-    robots: List[pedsim_msgs.RobotState]
-    groups: List[pedsim_msgs.AgentGroup]
-    waypoints: List[pedsim_msgs.Waypoint]
-    walls: List[pedsim_msgs.Wall]
-    obstacles: List[pedsim_msgs.Obstacle]
+    agents: typing.List[pedsim_msgs.AgentState]
+    robots: typing.List[pedsim_msgs.RobotState]
+    groups: typing.List[pedsim_msgs.AgentGroup]
+    waypoints: typing.List[pedsim_msgs.Waypoint]
+    walls: typing.List[pedsim_msgs.Wall]
+    obstacles: typing.List[pedsim_msgs.Obstacle]
 
 @dataclasses.dataclass
 class OutDatum:
@@ -110,9 +110,9 @@ class WorkData:
 
     # _storage: np.ndarray
 
-    id: list
+    id: typing.List
     force: np.ndarray
-    social_state: list
+    social_state: typing.List
     vmax: np.ndarray
 
     def __init__(self, n_agents: int):
@@ -157,6 +157,6 @@ class SemanticAttribute(enum.Enum):
     STATE_ENERGY = "energy"
     STATE_SOCIAL = "social"
 
-SemanticData = Dict[SemanticAttribute, List[Tuple[geometry_msgs.Point, float]]]
-SemanticMsg = pedsim_msgs.SemanticData
+SemanticData = typing.Dict[SemanticAttribute, typing.List[typing.Tuple[geometry_msgs.Point, float]]]
+SemanticMsg = crowdsim_msgs.SemanticData
 
