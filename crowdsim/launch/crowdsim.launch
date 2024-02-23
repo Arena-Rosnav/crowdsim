@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="sfm" default="pysocial" />
+    <arg name="scene_file" default="" />
+    <arg name="visualize" default="false" />
+
+    <node name="crowdsim_agents" pkg="crowdsim_agents" type="crowdsim_agents" required="true">
+        <param name="forcemodel" value="$(arg sfm)" />
+    </node>
+
+    <group>
+        <node name="crowdsim_agents_data_relay" pkg="topic_tools" type="relay" args="pedsim_simulator/pedsim_agents_data crowdsim_agents/input" />
+        <node name="crowdsim_agents_feedback_relay" pkg="topic_tools" type="relay" args="crowdsim_agents/feedback pedsim_simulator/pedsim_agents_feedback" />
+
+        <include file="$(find pedsim_ros)/launch/pedsim.launch">
+            <arg name="scene_file" value="$(arg scene_file)" />
+            <arg name="visualize" value="$(arg visualize)" />
+        </include>
+    </group>
+</launch>

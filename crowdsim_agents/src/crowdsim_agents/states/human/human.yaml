@@ -1,0 +1,134 @@
+statechart:
+  name: Human
+  description: |
+    ...
+
+  preamble: |
+    time_in_state = 0
+    min_time_in_state = config["min_time_in_state"] / runtime["dt"]
+
+  root state:
+    name: root
+    parallel states:
+      - name: drift
+        transitions:
+          - event: tick
+            target: drift
+            action: |
+              time_in_state += 1
+              state["stress"]  += runtime["dt"] * config["d_stress"]
+              state["energy"]  += runtime["dt"] * config["d_energy"] 
+              state["social"]  += runtime["dt"] * config["d_social"]
+
+      - name: animation
+        initial: rest
+        states:
+          - name: rest
+            initial: walking
+            on entry: |
+              action: send("seek", id=None)
+            transitions:
+            
+            - target: phone
+              priority: -2
+              guard: (runtime["rng"].random() > ((1 - max(0, state["social"]-config["social_hi"])) ** runtime["dt"]))
+            
+            - target: running
+              priority: -1
+              guard: (runtime["rng"].random() > ((1 - max(0, state["energy"]-config["energy_hi"])) ** runtime["dt"]))
+
+            - target: talking
+              priority: 1
+              event: agent
+              guard: state["social"] >= config["social_hi"]
+              action: send("seek", id=event.id)
+
+            - target: interacting
+              priority: 2
+              event: obstacle
+              guard: state["energy"] >= config["energy_hi"]
+              action: send("seek", id=event.id)
+
+            states:
+
+              - name: idle
+                on entry: |
+                  time_in_state = 0
+                  send("animation", animation="IDLE")
+                transitions:
+                  - event: tick
+                    action: |
+                      state["stress"]  += runtime["dt"] * config["idle_d_stress"]
+                      state["energy"]  += runtime["dt"] * config["idle_d_energy"] 
+                      state["social"]  += runtime["dt"] * config["idle_d_social"]
+              - name: walking
+                on entry: |
+                  time_in_state = 0
+                  send("animation", animation="WALKING")
+                transitions:
+                  - event: tick
+                    action: |
+                      state["stress"]  += runtime["dt"] * config["walking_d_stress"]
+                      state["energy"]  += runtime["dt"] * config["walking_d_energy"] 
+                      state["social"]  += runtime["dt"] * config["walking_d_social"]
+
+          - name: energy_activity
+            transitions:
+              - target: rest
+                guard: state["energy"] <= config["energy_lo"]
+              - target: rest
+                event: lost
+
+            states:
+              - name: running
+                on entry: |
+                  time_in_state = 0
+                  send("animation", animation="RUNNING")
+                transitions:
+                  - event: tick
+                    action: |
+                      state["stress"]  += runtime["dt"] * config["running_d_stress"]
+                      state["energy"]  += runtime["dt"] * config["running_d_energy"] 
+                      state["social"]  += runtime["dt"] * config["running_d_social"]
+
+              - name: interacting
+                on entry: |
+                  time_in_state = 0
+                  send("animation", animation="INTERACTING")
+                transitions:
+                  - event: tick
+                    action: |
+                      state["stress"]  += runtime["dt"] * config["interacting_d_stress"]
+                      state["energy"]  += runtime["dt"] * config["interacting_d_energy"] 
+                      state["social"]  += runtime["dt"] * config["interacting_d_social"]
+
+          - name: social_activity
+            transitions:
+              - target: rest
+                guard: state["social"] <= config["social_lo"]
+                action: send("seek", id=None)
+              - target: rest
+                event: lost
+
+            states:
+              - name: talking
+                on entry: |
+                  time_in_state = 0
+                  send("animation", animation="TALKING")
+                transitions:
+                  - event: tick
+                    action: |
+                      state["stress"]  += runtime["dt"] * config["talking_d_stress"]
+                      state["energy"]  += runtime["dt"] * config["talking_d_energy"] 
+                      state["social"]  += runtime["dt"] * config["talking_d_social"]
+
+              - name: phone
+                on entry: |
+                  time_in_state = 0
+                  send("animation", animation="PHONE")
+                transitions:
+                  - event: tick
+                    action: |
+                      state["stress"]  += runtime["dt"] * config["phone_d_stress"]
+                      state["energy"]  += runtime["dt"] * config["phone_d_energy"] 
+                      state["social"]  += runtime["dt"] * config["phone_d_social"]

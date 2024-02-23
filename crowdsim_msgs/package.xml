@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>crowdsim_msgs</name>
+  <version>0.0.2</version>
+  <description>The crowdsim_msgs package: contains messages for crowdsim</description>
+
+  <maintainer email="volodymyr.shcherbyna@alumni.tu-berlin.de">Volodymyr Shcherbyna</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>message_generation</depend>
+  <depend>message_runtime</depend>
+
+  <depend>pedsim_msgs</depend>
+
+</package>

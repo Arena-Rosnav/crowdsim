@@ -1,0 +1,49 @@
+@startuml
+title Human
+state "root" as root {
+  state "animation" as animation {
+    [*] --> rest
+    state "social_activity" as socialactivity {
+      socialactivity --> rest : [state["social"] <= config["social_lo"]]
+      state "phone" as phone {
+        phone : **entry** / time_in_state = 0; send("animation", animation="PHONE")
+        phone : **tick** / state["stress"]  += runtime["dt"] * config["phone_d_stress"]; state["energy"]  += runtime["dt"] * config["phone_d_energy"] ; state["social"]  += runtime["dt"] * config["phone_d_social"]
+      }
+      state "talking" as talking {
+        talking : **entry** / time_in_state = 0; send("animation", animation="TALKING")
+        talking : **tick** / state["stress"]  += runtime["dt"] * config["talking_d_stress"]; state["energy"]  += runtime["dt"] * config["talking_d_energy"] ; state["social"]  += runtime["dt"] * config["talking_d_social"]
+      }
+    }
+    state "energy_activity" as energyactivity {
+      energyactivity --> rest : [state["energy"] <= config["energy_lo"]]
+      state "interacting" as interacting {
+        interacting : **entry** / time_in_state = 0; send("animation", animation="INTERACTING")
+        interacting : **tick** / state["stress"]  += runtime["dt"] * config["interacting_d_stress"]; state["energy"]  += runtime["dt"] * config["interacting_d_energy"] ; state["social"]  += runtime["dt"] * config["interacting_d_social"]
+      }
+      state "running" as running {
+        running : **entry** / time_in_state = 0; send("animation", animation="RUNNING")
+        running : **tick** / state["stress"]  += runtime["dt"] * config["running_d_stress"]; state["energy"]  += runtime["dt"] * config["running_d_energy"] ; state["social"]  += runtime["dt"] * config["running_d_social"]
+      }
+    }
+    state "rest" as rest {
+      [*] --> walking
+      rest --> phone : -2:[(runtime["rng"].random() > (1 - max(0, config["social_hi"]-state["social"]) ** runtime["dt"]))]
+      rest --> running : -1:[(runtime["rng"].random() > (1 - max(0, config["energy_hi"]-state["energy"]) ** runtime["dt"]))]
+      rest --> talking : 1:some1 [state["social"] >= config["social_hi"]]
+      rest --> interacting : 2:some2 [state["energy"] >= config["energy_hi"]]
+      state "walking" as walking {
+        walking : **entry** / time_in_state = 0; send("animation", animation="WALKING")
+        walking : **tick** / state["stress"]  += runtime["dt"] * config["walking_d_stress"]; state["energy"]  += runtime["dt"] * config["walking_d_energy"] ; state["social"]  += runtime["dt"] * config["walking_d_social"]
+      }
+      state "idle" as idle {
+        idle : **entry** / time_in_state = 0; send("animation", animation="IDLE")
+        idle : **tick** / state["stress"]  += runtime["dt"] * config["idle_d_stress"]; state["energy"]  += runtime["dt"] * config["idle_d_energy"] ; state["social"]  += runtime["dt"] * config["idle_d_social"]
+      }
+    }
+  }
+  --
+  state "drift" as drift {
+    drift --> drift : / time_in_state += 1; state["stress"]  += runtime["dt"] * config["d_stress"]; state["energy"]  += runtime["dt"] * config["d_energy"] ; state["social"]  += runtime["dt"] * config["d_social"]
+  }
+}
+@enduml

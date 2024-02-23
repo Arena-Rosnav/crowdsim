@@ -1,0 +1,4 @@
+#! /usr/bin/env python
+import crowdsim_agents
+if __name__ == '__main__':
+    crowdsim_agents.main()

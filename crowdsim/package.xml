@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>crowdsim</name>
+  <version>0.2.0</version>
+  <description>
+    Stateful pedestrian simulator extending pedsim_ros.
+  </description>
+
+  <maintainer email="volodymyr.shcherbyna@alumni.tu-berlin.de">Volodymyr Shcherbyna</maintainer>
+
+  <license>BSD</license>
+
+  <author email="volodymyr.shcherbyna@alumni.tu-berlin.de">Volodymyr Shcherbyna</author>
+
+  <url type="website">https://github.com/Arena-Rosnav/crowdnav</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>pedsim</depend>
+  <depend>pedsim_msgs</depend>
+  <depend>pedsim_simulator</depend>
+  <depend>pedsim_srvs</depend>
+  <depend>pedsim_utils</depend>
+  <depend>pedsim_sensors</depend>
+  <depend>pedsim_visualizer</depend>
+
+  <depend>crowdnav_agents</depend>
+  <depend>crowdnav_msgs</depend>
+  
+</package>
