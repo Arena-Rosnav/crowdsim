@@ -22,7 +22,16 @@ statechart:
 
       - name: animation
         initial: rest
+        transitions:
+          - target: panic
+            guard: time_in_state >= min_time_in_state and state["stress"] > config["stress_hi"]
         states:
+          - name: panic
+            on entry: |
+              state["energy"] = max(state["energy"], config["energy_hi"])
+              state["stress"] = config["stress_hi"]
+            transitions:
+              - target: running
           - name: rest
             initial: walking
             on entry: |
