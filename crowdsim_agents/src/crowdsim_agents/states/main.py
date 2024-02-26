@@ -3,8 +3,8 @@
 import json
 import typing
 from crowdsim_agents.states import Agent
-from crowdsim_agents.states.human.adult.adult import Adult
-from crowdsim_agents.states.human.adult.elder import Elder
+from crowdsim_agents.states.human.adult import Adult
+from crowdsim_agents.states.human.elder import Elder
 from crowdsim_agents.utils import InData, WorkData
 import pedsim_msgs.msg as pedsim_msgs
 
