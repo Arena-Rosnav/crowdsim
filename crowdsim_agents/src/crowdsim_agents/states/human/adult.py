@@ -1,4 +1,4 @@
-from ..human import Human
+from .human import Human
 
 class Adult(Human):
     ...

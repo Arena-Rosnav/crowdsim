@@ -7,7 +7,7 @@ import typing
 import sismic.model
 import numpy as np
 
-from crowdsim_agents import utils
+import crowdsim_agents.utils as utils
 
 from .. import Agent, StatechartProvider
 

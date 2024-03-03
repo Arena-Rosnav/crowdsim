@@ -5,12 +5,9 @@ import sismic.interpreter
 import dynamic_reconfigure.client
 
 import typing
-import enum
 
 import numpy as np
-import numpy.typing as npt
-from crowdsim_agents import utils
-from crowdsim_agents.utils import InData, WorkData
+import crowdsim_agents.utils as utils
 
 import rospy
 
@@ -106,7 +103,7 @@ class Agent(StatechartProvider):
         else:
             pass
 
-    def pre(self, in_data: InData, work_data: WorkData, i: int, events: typing.Collection[sismic.model.Event] = ()):
+    def pre(self, in_data: utils.InData, work_data: utils.WorkData, i: int, events: typing.Collection[sismic.model.Event] = ()):
 
         for event in (*events, "tick"):
             self._statemachine.queue(event).execute_once()
@@ -114,7 +111,7 @@ class Agent(StatechartProvider):
         if self._destination is not None:
             in_data.agents[i].destination.x, in_data.agents[i].destination.y, in_data.agents[i].destination.z = self._destination
 
-    def post(self, in_data: InData, work_data: WorkData, i: int):
+    def post(self, in_data: utils.InData, work_data: utils.WorkData, i: int):
         work_data.social_state[i] = self._animation
 
         my = in_data.agents[i]

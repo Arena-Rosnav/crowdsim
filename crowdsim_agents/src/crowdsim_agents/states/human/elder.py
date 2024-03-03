@@ -1,4 +1,4 @@
-from ..human import Human
+from .human import Human
 
 from crowdsim_agents.utils import NormalDist as ND, ConstantDist as CD
 
