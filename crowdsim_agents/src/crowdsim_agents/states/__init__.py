@@ -1,3 +1,4 @@
+import colorsys
 import sismic.model
 import sismic.io
 import sismic.interpreter
@@ -10,6 +11,10 @@ import numpy as np
 import crowdsim_agents.utils as utils
 
 import rospy
+import pedsim_msgs.msg as pedsim_msgs
+import visualization_msgs.msg as visualization_msgs
+import geometry_msgs.msg as geometry_msgs
+import std_msgs.msg as std_msgs
 
 class Range(typing.NamedTuple):
     MIN: float = 0
@@ -58,6 +63,8 @@ class Agent(StatechartProvider):
     _social_state: int
     _destination: typing.Optional[typing.Tuple[float, float, float]]
 
+    _pub_marker: rospy.Publisher
+
     #TODO move vmax randomization here (from pedsim_engine)
     _random_config = utils.RandomConfig()
 
@@ -75,6 +82,8 @@ class Agent(StatechartProvider):
         self._state = dict()
         
         #dynamic_reconfigure.client.Client("")
+
+        self._pub_marker = rospy.Publisher("crowdsim_states", visualization_msgs.Marker, queue_size=None)
 
         self._destination = None
         self._animation = ""
@@ -122,6 +131,56 @@ class Agent(StatechartProvider):
             a *= 0.01
             work_data.force[i] = a
             work_data.vmax[i] = 0.01
+
+        self.visualize(in_data, i)
+
+    def visualize(self, in_data: utils.InData, i: int):
+
+        BAR_HEIGHT = 0.08
+        BAR_WIDTH = .8
+        Y_OFFSET = -0.5
+
+        my = in_data.agents[i]
+
+        offset = 0
+        
+        bars_marker = visualization_msgs.Marker()
+        bars_marker.header = in_data.header
+        bars_marker.ns = str(i)
+        bars_marker.action = visualization_msgs.Marker.MODIFY
+        bars_marker.pose.position = my.pose.position
+        bars_marker.pose.orientation.w = 1
+        bars_marker.lifetime = rospy.Duration(1)
+        
+        bars_marker.type = visualization_msgs.Marker.LINE_LIST
+        bars_marker.scale.x = BAR_HEIGHT
+
+        total = len(self._state)
+        for state, value in self._state.items():
+            offset += 1
+            bars_marker.id = offset
+            bars_marker.color = std_msgs.ColorRGBA(*colorsys.hsv_to_rgb(offset/total, .9, .9),1)
+            
+            bars_marker.points = []
+            bars_marker.points.append(geometry_msgs.Point(BAR_WIDTH/2, Y_OFFSET-offset*BAR_HEIGHT, 0))
+            bars_marker.points.append(geometry_msgs.Point(-BAR_WIDTH*(value-.5), Y_OFFSET-offset*BAR_HEIGHT, 0))
+            
+            self._pub_marker.publish(bars_marker)
+
+        text_marker = visualization_msgs.Marker()
+        text_marker.header = in_data.header
+        text_marker.ns = str(i)
+        text_marker.action = visualization_msgs.Marker.MODIFY
+        text_marker.pose.position = my.pose.position
+        text_marker.pose.orientation.w = 1
+        text_marker.lifetime = rospy.Duration(1)
+        
+        text_marker.id = 0
+        text_marker.type = visualization_msgs.Marker.TEXT_VIEW_FACING
+        text_marker.color = std_msgs.ColorRGBA(0,0,0,1)
+        text_marker.scale.x = text_marker.scale.y = text_marker.scale.z = 0.5
+        text_marker.text = self._animation
+        self._pub_marker.publish(text_marker)
 
     def semantic(self) -> typing.Dict:
         return {
