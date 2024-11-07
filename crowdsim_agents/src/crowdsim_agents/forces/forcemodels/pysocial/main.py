@@ -31,37 +31,48 @@ class Plugin_PySocialForce(Forcemodel):
         agents: dict,
         _groups: List[pedsim_msgs.msg.AgentGroup],
     ) -> list:
-        # assign new agents to groups
+        if not agents:
+            rospy.logwarn("No agents provided")
+            return []
+
+        # First pass: Clean up stale entries
+        stale_agents = [aid for aid in self.groups if aid not in agents]
+        for aid in stale_agents:
+            del self.groups[aid]
+
+        # Second pass: Assign new agents to groups
         for agent_id, idx in agents.items():
-            if agent_id in self.groups:
-                # agent already went through assignment
+            if agent_id not in self.groups:
+                assigned_group = random.randint(0, self.group_count)
+                if assigned_group == self.group_count:
+                    self.group_count += 1
+                self.groups[agent_id] = assigned_group
+
+        # Form group list with validation using a copy
+        new_groups = [list() for _ in range(self.group_count)]
+        # rospy.loginfo(f"Groups: {self.groups}, Group Count: {self.group_count}")
+
+        # Use .copy() to prevent RuntimeError during iteration
+        for agent_id, group_idx in self.groups.copy().items():
+            try:
+                if agent_id in agents and group_idx < len(new_groups):
+                    new_groups[group_idx].append(agents[agent_id])
+                else:
+                    del self.groups[agent_id]
+                    rospy.logwarn(
+                        f"Invalid agent {agent_id} or group index {group_idx}"
+                    )
+            except Exception as e:
+                rospy.logerr(f"Error processing agent {agent_id}: {str(e)}")
                 continue
 
-            # pick between existing groups and a new single one
-            assigned_group = random.randint(0, self.group_count)
-            if assigned_group == self.group_count:
-                self.group_count += 1
-            self.groups[agent_id] = assigned_group
-
-        # form group list with validation
-        new_groups = [list() for _ in range(self.group_count)]
-
-        # Validate and append agents to groups
-        for agent_id, group_idx in self.groups.items():
-            if agent_id in agents:  # Check if agent_id exists in agents dictionary
-                new_groups[group_idx].append(agents[agent_id])
-            else:
-                # Clean up stale group assignments
-                del self.groups[agent_id]
-                rospy.logwarn(f"Agent {agent_id} not found in agents dictionary")
-
-        # Remove empty groups
+        # Remove empty groups and update count
         new_groups = [group for group in new_groups if group]
         self.group_count = len(new_groups)
 
-        rospy.logdebug(
-            f"Groups: {self.groups}, New Groups: {new_groups}, Group Count: {self.group_count}"
-        )
+        if not new_groups:
+            rospy.logwarn("No valid groups formed")
+            return []
 
         return new_groups
 
