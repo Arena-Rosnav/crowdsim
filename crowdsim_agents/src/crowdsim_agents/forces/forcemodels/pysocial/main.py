@@ -19,17 +19,18 @@ class Plugin_PySocialForce(Forcemodel):
         global psf
 
         import sys
+
         sys.path.append(str(Path(__file__).resolve().parent))
         import pysocialforce as psf
 
         self.groups = dict()
         self.group_count = 0
 
-    def assign_groups(self,
-                   agents: dict,
-                   _groups: List[pedsim_msgs.msg.AgentGroup],
-                   ) -> list:
-        
+    def assign_groups(
+        self,
+        agents: dict,
+        _groups: List[pedsim_msgs.msg.AgentGroup],
+    ) -> list:
         # assign new agents to groups
         for agent_id, idx in agents.items():
             if agent_id in self.groups:
@@ -42,37 +43,62 @@ class Plugin_PySocialForce(Forcemodel):
                 self.group_count += 1
             self.groups[agent_id] = assigned_group
 
-        # form group list
+        # form group list with validation
         new_groups = [list() for _ in range(self.group_count)]
+
+        # Validate and append agents to groups
         for agent_id, group_idx in self.groups.items():
-            new_groups[group_idx].append(agents[agent_id])
+            if agent_id in agents:  # Check if agent_id exists in agents dictionary
+                new_groups[group_idx].append(agents[agent_id])
+            else:
+                # Clean up stale group assignments
+                del self.groups[agent_id]
+                rospy.logwarn(f"Agent {agent_id} not found in agents dictionary")
+
+        # Remove empty groups
+        new_groups = [group for group in new_groups if group]
+        self.group_count = len(new_groups)
+
+        rospy.logdebug(
+            f"Groups: {self.groups}, New Groups: {new_groups}, Group Count: {self.group_count}"
+        )
 
         return new_groups
-    
-    def overwrite_group_dest(self,
-                        state: np.ndarray,
-                        groups: List,
-                        ) -> np.ndarray:
+
+    def overwrite_group_dest(
+        self,
+        state: np.ndarray,
+        groups: List,
+    ) -> np.ndarray:
 
         for group in groups:
             leader = group[0]
-            
+
             for i in range(1, len(group)):
                 member = group[i]
-                
+
                 row = (i // 8) + 1
-                x_off = (1 if (i + 1) % 8 < 3 else (-1 if 3 < (i + 1) % 8 < 7 else 0)) * row * self.GROUP_DEST_DIST
-                y_off = (1 if i % 8 > 4 else (-1 if 0 < i % 8 < 4 else 0)) * row * self.GROUP_DEST_DIST
+                x_off = (
+                    (1 if (i + 1) % 8 < 3 else (-1 if 3 < (i + 1) % 8 < 7 else 0))
+                    * row
+                    * self.GROUP_DEST_DIST
+                )
+                y_off = (
+                    (1 if i % 8 > 4 else (-1 if 0 < i % 8 < 4 else 0))
+                    * row
+                    * self.GROUP_DEST_DIST
+                )
                 state[member, 4] = state[leader, 4] + x_off
                 state[member, 5] = state[leader, 5] + y_off
 
         return state
 
     @staticmethod
-    def get_state_data(agents: List[pedsim_msgs.msg.AgentState], 
-                       groups: List[pedsim_msgs.msg.AgentGroup]
-                       ) -> np.ndarray:
-        
+    def get_state_data(
+        agents: List[pedsim_msgs.msg.AgentState],
+        groups: List[pedsim_msgs.msg.AgentGroup],
+    ) -> np.ndarray:
+
         idx_assignment = dict()
         state_data = list()
         for idx in range(len(agents)):
@@ -88,13 +114,11 @@ class Plugin_PySocialForce(Forcemodel):
             state_data.append([p_x, p_y, v_x, v_y, d_x, d_y])
             idx_assignment[agent.id] = idx
         state = np.array(state_data)
-        
+
         return state, idx_assignment
-    
 
     @staticmethod
-    def extract_obstacles(obstacles: List[pedsim_msgs.msg.Wall]
-                          ) -> List[List[int]]:
+    def extract_obstacles(obstacles: List[pedsim_msgs.msg.Wall]) -> List[List[int]]:
         obs_list = list()
 
         for obs in obstacles:
@@ -107,11 +131,10 @@ class Plugin_PySocialForce(Forcemodel):
 
         return obs_list
 
-
     def compute(self, in_data, work_data):
         if len(in_data.agents) < 1:
             return
-        
+
         state, agent_idx = self.get_state_data(in_data.agents, in_data.groups)
         groups = self.assign_groups(agent_idx, in_data.groups)
         state = self.overwrite_group_dest(state, groups)
@@ -123,10 +146,12 @@ class Plugin_PySocialForce(Forcemodel):
             state=state,
             groups=groups,
             obstacles=obs,
-            config_file=Path(__file__).resolve().parent.joinpath("pysocialforce/config/default.toml")
+            config_file=Path(__file__)
+            .resolve()
+            .parent.joinpath("pysocialforce/config/default.toml"),
         )
 
         forces = self.FACTOR * simulator.compute_forces()
 
-        work_data.force[:,[0,1]] = forces
+        work_data.force[:, [0, 1]] = forces
         work_data.force[np.isnan(work_data.force)] = 0
